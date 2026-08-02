@@ -622,3 +622,72 @@ def test_build_plan_with_no_pets_produces_an_empty_plan():
 
     assert plan == []
     assert scheduler.get_reasoning() == "No tasks were scheduled: there are no pending tasks to schedule."
+
+
+def test_build_plan_includes_an_optional_task_that_exactly_uses_remaining_minutes():
+    owner = Owner()
+    pet = Pet(name="Mochi", species="dog")
+    owner.add_pet(pet)
+    exact_fit = Task(description="Walk", duration_minutes=30, priority=5)
+    pet.add_task(exact_fit)
+
+    scheduler = Scheduler()
+    scheduler.set_available_minutes(30)
+    plan = scheduler.build_plan(owner)
+
+    assert exact_fit in plan
+    assert scheduler.remaining_minutes == 0
+
+
+# ---- Boundary values (edge of the guardrail ranges) ----
+
+@pytest.mark.parametrize("priority", [1, 10])
+def test_task_construction_accepts_boundary_priority_values(priority):
+    task = Task(description="Walk", duration_minutes=10, priority=priority)
+    assert task.priority == priority
+
+
+@pytest.mark.parametrize("duration_minutes", [1, 240])
+def test_task_construction_accepts_boundary_duration_values(duration_minutes):
+    task = Task(description="Walk", duration_minutes=duration_minutes, priority=5)
+    assert task.duration_minutes == duration_minutes
+
+
+# ---- Recurrence edge cases ----
+
+def test_mark_complete_returns_none_for_an_unrecognized_frequency():
+    task = Task(description="Walk", duration_minutes=10, priority=5, frequency="monthly")
+
+    assert task.mark_complete() is None
+
+
+# ---- Identity vs. value equality when removing tasks ----
+
+def test_remove_task_removes_by_value_equality_not_by_object_identity():
+    """Task is a plain dataclass, so list.remove() matches on field equality.
+
+    Two field-identical tasks are indistinguishable to remove_task() — calling
+    it with one instance can remove the *other* equal instance instead. This
+    test locks in that documented behavior rather than assuming object identity.
+    """
+    pet = Pet(name="Mochi", species="dog")
+    first = Task(description="Feed", duration_minutes=10, priority=5)
+    second = Task(description="Feed", duration_minutes=10, priority=5)
+    assert first == second and first is not second
+    pet.add_task(first)
+    pet.add_task(second)
+
+    pet.remove_task(second)
+
+    assert pet.task_list == [second]
+    assert pet.task_list[0] is second
+
+
+# ---- Empty-owner reads ----
+
+def test_get_all_tasks_and_filter_tasks_on_an_owner_with_no_pets():
+    owner = Owner()
+
+    assert owner.get_all_tasks() == []
+    assert owner.filter_tasks() == []
+    assert owner.filter_tasks(completed=True, pet_name="Nobody") == []

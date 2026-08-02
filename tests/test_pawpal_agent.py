@@ -590,3 +590,29 @@ def test_schedule_snapshot_reflects_an_applied_change_immediately():
     assert snapshot["conflicts"] == []
     walk_summary = next(t for t in snapshot["plan"] if t["description"] == "Walk")
     assert walk_summary["time_display"] == "09:00 AM"
+
+
+# ---- required=False is a real, meaningful edit — not a missing/omitted field ----
+
+def test_parse_updates_keeps_an_explicit_false_value_for_required():
+    parsed = SchedulingAgent._parse_updates({"required": False, "priority": None})
+
+    assert parsed == {"required": False}
+
+
+def test_propose_change_can_unmark_a_required_task():
+    agent, feed, walk, groom = _build_conflicted_schedule()
+
+    preview = agent._propose_change(id(feed), {"required": False})
+
+    assert preview["after"]["required"] is False
+    assert agent.pending_proposal["updates"] == {"required": False}
+
+
+def test_apply_pending_proposal_commits_an_explicit_false_required_change():
+    agent, feed, walk, groom = _build_conflicted_schedule()
+    agent._propose_change(id(feed), {"required": False})
+
+    agent.apply_pending_proposal()
+
+    assert feed.required is False
