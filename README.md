@@ -11,8 +11,8 @@ I modified my PawPal+ project to include a chatbot that could assist the user wi
 My system diagram consists of 5 classes, the Owner, Pet, Task, Scheduler, and SchedulingAgent. The Owner owns Pets and Tasks, with the ability to add Pets and contain/filter tasks. The Pet contains its own list of Tasks that are related to it and have multiple attributes involving their characteristics. Tasks can be added and removed for pets as well as marked complete. The Scheduler maintains the Tasks, scheduled Tasks, Unscheduled Tasks, conflicts, reasonings, and available minutes of the Owner. Lastly the Scheduling Agent is able to read from the Scheduler and Owner to plan queries and responses for suggestions/answers. 
 
 ## Setup Instructions
-1. git clone https://github.com/humanchild101/PawPal-Applied-AI-System-Project-.git
-2. code . 
+1. In the terminal, paste, `git clone https://github.com/humanchild101/PawPal-Applied-AI-System-Project-.git`
+2. Paste, `code . `
 3. Go to https://console.groq.com/keys and login
 4. Create an API key and copy the key. 
 5. Create a file called secrets.toml in the .streamlit folder. There should be another file called secrets.toml.example. Copy everything from that into the secrets.toml file and paste the API key in. 
