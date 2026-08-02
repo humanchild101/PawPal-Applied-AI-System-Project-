@@ -6,6 +6,13 @@ from typing import List, Optional, Tuple
 
 RECURRENCE_INTERVALS = {"daily": timedelta(days=1), "weekly": timedelta(weeks=1)}
 
+MIN_PRIORITY = 1
+MAX_PRIORITY = 10
+MIN_DURATION_MINUTES = 1
+MAX_DURATION_MINUTES = 240
+MIN_AVAILABLE_MINUTES = 0
+MAX_AVAILABLE_MINUTES = 600
+
 
 @dataclass
 class Task:
@@ -17,11 +24,33 @@ class Task:
     completed: bool = False
     required: bool = False
 
+    def __post_init__(self) -> None:
+        self._validate_priority(self.priority)
+        self._validate_duration_minutes(self.duration_minutes)
+
     def modify_task(self, **updates) -> None:
         """Update any given attributes on this task in place."""
+        if "priority" in updates:
+            self._validate_priority(updates["priority"])
+        if "duration_minutes" in updates:
+            self._validate_duration_minutes(updates["duration_minutes"])
+
         for key, value in updates.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+
+    @staticmethod
+    def _validate_priority(priority: int) -> None:
+        if not MIN_PRIORITY <= priority <= MAX_PRIORITY:
+            raise ValueError(f"priority must be between {MIN_PRIORITY} and {MAX_PRIORITY}, got {priority}")
+
+    @staticmethod
+    def _validate_duration_minutes(duration_minutes: int) -> None:
+        if not MIN_DURATION_MINUTES <= duration_minutes <= MAX_DURATION_MINUTES:
+            raise ValueError(
+                f"duration_minutes must be between {MIN_DURATION_MINUTES} and "
+                f"{MAX_DURATION_MINUTES}, got {duration_minutes}"
+            )
 
     def mark_complete(self) -> Optional["Task"]:
         """Mark this task complete; if it recurs (daily/weekly), return its next occurrence."""
@@ -88,7 +117,6 @@ class Pet:
 @dataclass
 class Owner:
     pet_list: List[Pet] = field(default_factory=list)
-    time_preferences: str = ""
 
     def add_pet(self, pet: Pet) -> None:
         """Add a pet to this owner's pet list."""
@@ -98,10 +126,6 @@ class Owner:
         """Remove a pet from this owner's pet list, if present."""
         if pet in self.pet_list:
             self.pet_list.remove(pet)
-
-    def change_pref(self, pref: str) -> None:
-        """Update this owner's time preferences."""
-        self.time_preferences = pref
 
     def get_all_tasks(self) -> List[Task]:
         """Return every task across all of this owner's pets."""

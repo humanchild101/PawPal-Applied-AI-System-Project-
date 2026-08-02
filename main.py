@@ -4,7 +4,7 @@ from pawpal_system import Owner, Pet, Scheduler, Task
 
 today = date.today()
 
-owner = Owner(time_preferences="morning preferred, i have daily meetings at 3 pm from Monday-Friday. On Sunday, I have a class at 7 pm.")
+owner = Owner()
 
 jasmine = Pet(name="jasmine", species="dog")
 spyder = Pet(name="spyder", species="cat")

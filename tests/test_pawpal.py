@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytest
+
 from pawpal_system import Owner, Pet, Scheduler, Task
 
 
@@ -81,6 +83,46 @@ def test_modify_task_updates_the_given_field():
     assert task.priority == 8
 
 
+@pytest.mark.parametrize("priority", [0, -1, 11, 100])
+def test_task_construction_rejects_out_of_range_priority(priority):
+    with pytest.raises(ValueError):
+        Task(description="Walk", duration_minutes=10, priority=priority)
+
+
+@pytest.mark.parametrize("duration_minutes", [0, -5, 241, 1000])
+def test_task_construction_rejects_out_of_range_duration(duration_minutes):
+    with pytest.raises(ValueError):
+        Task(description="Walk", duration_minutes=duration_minutes, priority=5)
+
+
+def test_modify_task_rejects_out_of_range_priority():
+    task = Task(description="Walk", duration_minutes=10, priority=5)
+
+    with pytest.raises(ValueError):
+        task.modify_task(priority=11)
+
+    assert task.priority == 5
+
+
+def test_modify_task_rejects_out_of_range_duration():
+    task = Task(description="Walk", duration_minutes=10, priority=5)
+
+    with pytest.raises(ValueError):
+        task.modify_task(duration_minutes=0)
+
+    assert task.duration_minutes == 10
+
+
+def test_modify_task_does_not_partially_apply_when_one_field_is_invalid():
+    task = Task(description="Walk", duration_minutes=10, priority=5)
+
+    with pytest.raises(ValueError):
+        task.modify_task(description="Run", priority=11)
+
+    assert task.description == "Walk"
+    assert task.priority == 5
+
+
 def test_adding_task_increases_pet_task_count():
     pet = Pet(name="Mochi", species="dog")
     assert len(pet.task_list) == 0
@@ -135,14 +177,6 @@ def test_removing_pet_decreases_owner_pet_count():
     owner.remove_pet(pet)
 
     assert len(owner.pet_list) == 0
-
-
-def test_change_pref_updates_owner_time_preferences():
-    owner = Owner()
-
-    owner.change_pref("mornings only")
-
-    assert owner.time_preferences == "mornings only"
 
 
 def test_get_all_tasks_includes_tasks_from_every_pet():

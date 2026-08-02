@@ -1,169 +1,36 @@
 # PawPal+ (Module 2 Project)
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
-## Scenario
+## What My Project Originally Did
+My PawPal+ project originally served as a scheduling application that allowed users to add their pets and then add tasks relating to their pets into the scheduler. They could input any task they needed, its duration, its priority rating (and whether it was required), and the time of day the task was to be completed. After adding all their tasks, depending on their inputted available time, the program would generate a schedule for the user that prioritizes required tasks and high priority tasks while staying within the user's time availability. The program would also notify the user of any schedule conflicts so that the user could go and modify their tasks to fix the issues. 
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+## Title and Summary
+I modified my PawPal+ project to include a chatbot that could assist the user with any questions regarding the schedule that was generated, and could also suggest and (upon user approval) implement changes that would allow the schedule to better suit the user's needs. This includes recognizing schedule conflicts and automatically generating meaningful suggestions that the user is just one click away from viewing and approving. 
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+## Architecture Overview
+My system diagram consists of 5 classes, the Owner, Pet, Task, Scheduler, and SchedulingAgent. The Owner owns Pets and Tasks, with the ability to add Pets and contain/filter tasks. The Pet contains its own list of Tasks that are related to it and have multiple attributes involving their characteristics. Tasks can be added and removed for pets as well as marked complete. The Scheduler maintains the Tasks, scheduled Tasks, Unscheduled Tasks, conflicts, reasonings, and available minutes of the Owner. Lastly the Scheduling Agent is able to read from the Scheduler and Owner to plan queries and responses for suggestions/answers. 
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+## Setup Instructions
+1. git clone https://github.com/humanchild101/PawPal-Applied-AI-System-Project-.git
+2. code . 
+3. Go to https://console.groq.com/keys and login
+4. Create an API key and copy the key. 
+5. Create a file called secrets.toml in the .streamlit folder. There should be another file called secrets.toml.example. Copy everything from that into the secrets.toml file and paste the API key in. 
+6. Run streamlit run app.py
 
-## What you will build
+## Sample Interactions
+|Inputs|Output|
+|------|------|
+|Why is calming Pu's tantrum not scheduled|The task "Calm Pu Tantrum" is not scheduled because it has a lower priority (4) compared to other tasks in the plan. The available time for the day is 300 minutes, and most of the tasks have higher priorities and are already scheduled, leaving only 10 minutes of remaining time. The task "Calm Pu Tantrum" requires 15 minutes, which is more than the remaining time available.
 
-Your final app should:
+Additionally, there is a conflict between "Bathe Pu" and "PuPi Playdate" as they are both scheduled for the same time (11:00 AM).
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+To accommodate "Calm Pu Tantrum", you could consider adjusting the schedule of other tasks or proposing a change to the available time for the day. Would you like me to propose a change?|
+|Please suggest a way to resolve the conflicts in the schedule.|I unfortunately cannot paste the exact response here because the response disappeared after I clicked 'accept' to its suggestion. Groq has a daily limit and I have used all of the tokens, so I cannot prompt it again. The suggestion it gave was along the lines of changing my available time limit to a higher number and then change the time of day of one of the tasks that was overlapping with other task and creating a conflict.|
 
-## Getting started
+## Design Decisions
+I built the applied AI system, implementing agentic workflow and RAG. The system itself is essentially a chatbot but it can also suggest and act (upon user approval). Data is retrevied from the Scheduler and Owner for specific information to answer the user's question with specific context instead of general information. The agentic workflow ensures that the user does not have to manually look through the gaps in the schedule/determine where conflicts are occuring and make decisions to fix them. The agent takes care of analyzing the conflicts and suggesting/implementing solutions approved by the user. One tradeoff I had to make (which has more to do with the API than the AI functionality itself) was that I could not use Gemini's API because it kept preventing me from doing so by redirecting me to a certain page. I did a lot of research but the suggested reasons for the issue were not applicable to me. I ended up using Groq's API, which works well, but it has a rate limit which has proved to be an inconvenience during testing because it would make me wait some time before testing again. I did not have too many options to work with. A more relavent tradeoff was that in return for scheduling that prioritizes required tasks and the user's time availability, a more 'sophisticated' AI that could provide more flexible suggestions on what should and should not be scheduled was not implemented. 
+ 
 
-### Setup
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### Suggested workflow
-
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## 🖥️ Sample Output
-
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
-
-=== Today's Schedule ===
-08:30 AM — Spyder Feed (10 min, required)
-11:00 AM — Jasmine Feed (5 min, required)
-11:10 AM — Spyder Feed (10 min, required)
-02:30 PM — Squash feed (5 min, required)
-
-Not scheduled:
-02:00 AM — Jasmine Play (30 min, priority 4/10) [time conflict]
-04:30 AM — give squash a squash (5 min, priority 5/10) [time conflict]
-08:00 AM — Jasmine Walk (30 min, priority 4/10) [time conflict]
-09:00 AM — Spyder litter box clean (15 min, priority 4/10) [time conflict]
-10:00 AM — Squash litter box cleaning (15 min, priority 4/10) [time conflict]
-
-Selected 4 task(s) totaling 30 of 10 available minutes.
-Required tasks were guaranteed a slot first; remaining tasks were then added by priority (10 = highest, 1 = lowest) until the available time ran out:
-  - Jasmine Feed (required, 5 min)
-  - Spyder Feed (required, 10 min)
-  - Spyder Feed (required, 10 min)
-  - Squash feed (required, 5 min)
-Warning: required tasks alone need 20 more minute(s) than your 10-minute budget. All required tasks were still included; consider freeing up more time.
-
-```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
-```
-
-## 🧪 Testing PawPal+
-
-```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
-```
-
-Sample test output:
-=========================================== test session starts ===========================================
-platform darwin -- Python 3.12.1, pytest-9.1.1, pluggy-1.6.0
-rootdir: /Users/nikhila/Desktop/Important/Code/CodePath/PawPal-
-plugins: anyio-4.14.1
-collected 43 items                                                                                        
-
-tests/test_pawpal.py ...........................................                                    [100%]
-
-=========================================== 43 passed in 0.08s ============================================
-
-
-The tests cover filtering, conflict messages, time conflict cases, time availability warnings, adding/remving tasks/pets, and sortings
-
-Confidence level that it works properly: 4.4/5
-
-## 📐 Smarter Scheduling
-
-> Fill in once you've implemented scheduling logic.
-
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | format_schedule| directly sorts the tasks in order of time when formatting the schedule content / text for display|
-| Filtering | filter_tasks|There are 2 options to either filterr by pet name or task completion status. |
-| Conflict handling | find_time_conflicts, times_overlap.  | returns conflicting task pairs, finds overlapping time windows |
-| Recurring tasks | complete_task| if this method sees that there is a recurrence interval like daily or weekly, it will create a new Task for the next day/week |
-
-## 📸 Demo Walkthrough
-
-Describe your app in numbered steps so a reader can follow along without watching a video:
-
-1. Add pet name called Potato if species cat and a cat named Onion
-2. Add a new task for onion called "Feed", 5 mins, 10/10 priority, required, 8 am, daily
-3. Add the same for Potato at the same time, but change the name to "Feed Potato Now"
-4. Add a task for potato called play with mouse doll, 30 mins, 7/10, 9:15 am, weekly
-5. onion --> "outdoor exposure", 30 mins, 8/10,  2:45 PM, daily
-6. Set available time to 20 minutes, generate schedule
-7. "2 task(s) are scheduled at overlapping times — see the items marked in red below." - Feeding potato and onion are at the same time, and therefore flagged. ⚠️ Warning: Not Enough Time for Required Tasks Required tasks alone need 20 more minute(s) than your 20-minute budget
-8. set time availablee to 200 minutres and add feed onion task at 9 am after removing original feed onion task. Output is normal
-9. Set feed potato task to complete. A new feed potato task will automatically appear as pending. if you use the filterr, now you will see the completed task with teh completion filter. 
-
-```
-python3 main.py
-=== Daily Schedule ===
-04:30 AM — give squash a squash (5 min, priority 5/10)
-08:30 AM — Spyder Feed (10 min, required)
-09:00 AM — Spyder litter box clean (15 min, priority 4/10)
-11:00 AM — Jasmine Feed (5 min, required)
-11:10 AM — Spyder Feed (10 min, required)
-02:30 PM — Squash feed (5 min, required)
-
-Not scheduled:
-02:00 AM — Jasmine Play (30 min, priority 4/10) [insufficient time]
-08:00 AM — Jasmine Walk (30 min, priority 4/10) [insufficient time]
-09:00 AM — Squash litter box cleaning (15 min, priority 4/10) [insufficient time]
-
-Selected 6 task(s) totaling 50 of 60 available minutes.
-Required tasks were guaranteed a slot first; remaining tasks were then added by priority (10 = highest, 1 = lowest) until the available time ran out:
-  - Jasmine Feed (required, 5 min)
-  - Spyder Feed (required, 10 min)
-  - Spyder Feed (required, 10 min)
-  - Squash feed (required, 5 min)
-  - give squash a squash (priority 5/10, 5 min)
-  - Spyder litter box clean (priority 4/10, 15 min)
-
-Completed tasks:
-  - Jasmine Feed
-Pending tasks:
-  - Jasmine Walk
-  - Jasmine Play
-  - Spyder Feed
-  - Spyder Feed
-  - Spyder litter box clean
-  - Squash litter box cleaning
-  - Squash feed
-  - give squash a squash
-Jasmine tasks:
-  - Jasmine Walk
-  - Jasmine Feed
-  - Jasmine Play
-```
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+## Testing Summary
+During the process of designing the AI system, there were many things that didn't work right and many that did. One positive was that instead of having just a simple chatbot that answered questions based on retreival of context, the chatbot worked with an agentic workflow which gave it more functionality and purpose in the program. One thing I think was very convenient during testing was preloading the application with testing data to use/modify while testing by adding a section at the top that would implplement this with a button click. One issue that occured was that the formatting of the AI responses was not easily readable (). As well as this, the AI would format its answers directly referencing variables and functions from the code. One other issue that surfaced when testing was that the AI did not directly make the changes it was approved to make. The values it was supposed to change would remain the same and I had to go and manually change them to see if the AI's change actually worked. I also had several issues with the API during testing where it would simply not work or would make me wait x amount of time before the next prompt (as mentioned earlier in this document.) These issues were all ultimately resolved though, and while the AI is not perfect right now, it works as intended for this small program. I learned a lot about implementing AI systems into projects. I chose to work with Groq's API and in the process of figure out that issue, I learned about the different available options. I also learned about the limitations of Groq and others, and it has led me to look into other options I could use in the future. I learned about RAG and agentic systems more through the direct implementation of them in my project. The project also made me think about how I could implement ideas next time which users could also easily access without going through the steps of manually installing APIs on their end. 

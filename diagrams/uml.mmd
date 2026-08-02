@@ -4,13 +4,18 @@ classDiagram
     %% a back-reference to its parent, so nothing needs manual syncing.
     %% Scheduler is a separate service class: it reads from an Owner's pets
     %% to build a plan, but is not part of the ownership tree itself.
+    %% SchedulingAgent is likewise a separate service class: it iterates
+    %% over read/propose tool calls against a Scheduler's plan and an
+    %% Owner's tasks to pursue a goal (e.g. "fit in a vet visit"), without
+    %% reimplementing Scheduler's deterministic build_plan() logic.
+    %% Proposed changes are staged, never committed by the model itself —
+    %% apply_pending_proposal() is called by the UI only after the user
+    %% confirms.
 
     class Owner {
         +List~Pet~ pet_list
-        +str time_preferences
         +add_pet(pet: Pet) void
         +remove_pet(pet: Pet) void
-        +change_pref(pref: str) void
         +get_all_tasks() List~Task~
         +filter_tasks(completed: bool, pet_name: str) List~Task~
     }
@@ -45,7 +50,7 @@ classDiagram
         +modify_task() void
         +mark_complete() Task
     }
-    note for Task "priority is a 1 (lowest) to 10 (highest) scale.\nrequired tasks are guaranteed a slot regardless of priority.\nmark_complete() returns the next occurrence if frequency is\n'daily' or 'weekly', else None. Pet.complete_task() schedules it."
+    note for Task "priority is a 1 (lowest) to 10 (highest) scale.\nduration_minutes must be between 1 and 240.\n__init__ and modify_task() both raise ValueError outside these ranges.\nrequired tasks are guaranteed a slot regardless of priority.\nmark_complete() returns the next occurrence if frequency is\n'daily' or 'weekly', else None. Pet.complete_task() schedules it."
 
     class Scheduler {
         +int available_minutes
@@ -61,6 +66,19 @@ classDiagram
     }
     note for Scheduler "time_conflicts holds (Task, Task) pairs whose\n[time, time + duration_minutes) windows overlap,\nregardless of whether they belong to the same pet."
 
+    class SchedulingAgent {
+        +Scheduler scheduler
+        +Owner owner
+        +str model
+        +List~dict~ conversation_history
+        +dict pending_proposal
+        +ask(question: str) str
+        +apply_pending_proposal() void
+    }
+    note for SchedulingAgent "Goal-directed tool-use loop over Scheduler/Owner (see pawpal_agent.py).\nask() may call several read/propose tools per turn, using each result\nto decide the next step, e.g. proposing candidate changes until\nconflicts resolve. pending_proposal has a 'kind' of either 'task'\n(stages a candidate Task field edit via propose_change) or\n'available_minutes' (stages a candidate change to Scheduler.available_minutes\nvia propose_available_minutes_change, bounds-checked 0-600). Either kind\nonly previews its effect without touching real data; only\napply_pending_proposal() commits it, and only the UI calls that, after\nthe user confirms — the model never applies its own proposal."
+
     Owner "1" --> "0..*" Pet : owns
     Pet "1" --> "0..*" Task : task_list
     Scheduler ..> Owner : builds plan from
+    SchedulingAgent ..> Scheduler : queries plan/reasoning from
+    SchedulingAgent ..> Owner : reads tasks from
