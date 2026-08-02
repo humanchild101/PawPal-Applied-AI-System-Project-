@@ -22,11 +22,7 @@ My system diagram consists of 5 classes, the Owner, Pet, Task, Scheduler, and Sc
 ## Sample Interactions
 |Inputs|Output|
 |------|------|
-|`Why is calming Pu's tantrum not scheduled`|```The task "Calm Pu Tantrum" is not scheduled because it has a lower priority (4) compared to other tasks in the plan. The available time for the day is 300 minutes, and most of the tasks have higher priorities and are already scheduled, leaving only 10 minutes of remaining time. The task "Calm Pu Tantrum" requires 15 minutes, which is more than the remaining time available.
-
-Additionally, there is a conflict between "Bathe Pu" and "PuPi Playdate" as they are both scheduled for the same time (11:00 AM).
-
-To accommodate "Calm Pu Tantrum", you could consider adjusting the schedule of other tasks or proposing a change to the available time for the day. Would you like me to propose a change?```|
+|`Why is calming Pu's tantrum not scheduled`|`The task "Calm Pu Tantrum" is not scheduled because it has a lower priority (4) compared to other tasks in the plan. The available time for the day is 300 minutes, and most of the tasks have higher priorities and are already scheduled, leaving only 10 minutes of remaining time. The task "Calm Pu Tantrum" requires 15 minutes, which is more than the remaining time available.Additionally, there is a conflict between "Bathe Pu" and "Pu's Playdate" as they are both scheduled for the same time (11:00 AM).To accommodate "Calm Pu Tantrum", you could consider adjusting the schedule of other tasks or proposing a change to the available time for the day. Would you like me to propose a change?`|
 |`Please suggest a way to resolve the conflicts in the schedule.`|`I unfortunately cannot paste the exact response here because the response disappeared after I clicked 'accept' to its suggestion. Groq has a daily limit and I have used all of the tokens, so I cannot prompt it again. The suggestion it gave was along the lines of changing my available time limit to a higher number and then change the time of day of one of the tasks that was overlapping with other task and creating a conflict.`|
 
 ## Design Decisions
