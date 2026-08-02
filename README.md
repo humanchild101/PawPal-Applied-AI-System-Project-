@@ -1,4 +1,4 @@
-# PawPal+ (Module 2 Project)
+# PawPal+ (Module 2 Project - Modified With Applied AI System)
 
 
 ## What My Project Originally Did
@@ -12,7 +12,7 @@ My system diagram consists of 5 classes, the Owner, Pet, Task, Scheduler, and Sc
 
 ## Setup Instructions
 1. In the terminal, paste, `git clone https://github.com/humanchild101/PawPal-Applied-AI-System-Project-.git`
-2. Paste, `code . `
+2. Paste, `code . `. This will open the project in VSCode. 
 3. Go to https://console.groq.com/keys and login
 4. Create an API key and copy the key. 
 5. Create a file called secrets.toml in the .streamlit folder. There should be another file called secrets.toml.example. Copy everything from that into the secrets.toml file and paste the API key in. 
